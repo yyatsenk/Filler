@@ -1,20 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_itoa.c                                          :+:      :+:    :+:   */
+/*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yyatsenk <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/10/31 10:46:49 by yyatsenk          #+#    #+#             */
-/*   Updated: 2017/11/01 14:13:47 by yyatsenk         ###   ########.fr       */
+/*   Created: 2017/12/15 17:23:50 by yyatsenk          #+#    #+#             */
+/*   Updated: 2017/12/15 17:23:51 by yyatsenk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static size_t	string_length(int n)
+static size_t		string_length(long int n)
 {
-	size_t i;
+	size_t			i;
 
 	i = 1;
 	while (n /= 10)
@@ -22,16 +22,22 @@ static size_t	string_length(int n)
 	return (i);
 }
 
-char			*ft_itoa(int n)
+char				*ft_itoa_l(long int n)
 {
 	size_t			str_len;
-	unsigned int	tmp_n;
+	long int		tmp_n;
 	char			*str;
 
 	str_len = string_length(n);
 	tmp_n = n;
 	if (n < 0)
 	{
+		if (n < -9223372036854775807)
+		{
+			str = ft_strnew(str_len);
+			str = ft_strcpy(str, "-9223372036854775808");
+			return (str);
+		}
 		tmp_n = -n;
 		str_len++;
 	}

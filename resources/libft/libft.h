@@ -14,10 +14,13 @@
 # define LIBFT_H
 
 # include <unistd.h>
+# include <stdarg.h>
 # include <string.h>
 # include <stdlib.h>
-# include "libft.h"
 # include "get_next_line.h"
+# include "./libft.h"
+# include <limits.h>
+# include <wchar.h>
 
 typedef struct		s_list
 {
@@ -25,6 +28,49 @@ typedef struct		s_list
 	size_t			content_size;
 	struct s_list	*next;
 }					t_list;
+
+typedef enum		e_t
+{
+	none,
+	s,
+	S,
+	p,
+	d,
+	D,
+	i,
+	o,
+	O,
+	u,
+	U,
+	x,
+	X,
+	c,
+}					t_typer;
+
+typedef enum		e_mode
+{
+	no,
+	H,
+	HH,
+	L,
+	LL,
+	J,
+	Z,
+}					t_perech;
+
+typedef struct		s_flag
+{
+	int nil;
+	int minus;
+	int plus;
+	int space;
+	int hash;
+	int sign;
+	int pres;
+	int rozmir;
+	int chlen;
+}					t_flag;
+
 void				*ft_memset(void *b, int c, size_t len);
 void				ft_bzero(void *s, size_t n);
 void				*ft_memcpy(void *dst, const void *src, size_t n);
@@ -69,7 +115,8 @@ char				*ft_strsub(char const *s, unsigned int start, size_t len);
 char				*ft_strjoin(char const *s1, char const *s2);
 char				*ft_strtrim(char const *s);
 char				**ft_strsplit(char const *s, char c);
-char				*ft_itoa(int n);
+char				*ft_itoa_l_l(long long int n);
+char				*ft_itoa_l(long int n);
 void				ft_putchar(char c);
 void				ft_putstr(char const *s);
 void				ft_putendl(char const *s);
@@ -86,7 +133,69 @@ void				ft_lstiter(t_list *lst, void (*f)(t_list *elem));
 t_list				*ft_lstmap(t_list *lst, t_list *(*f)(t_list *elem));
 size_t				ft_strlen_num(int n);
 int					ft_list_size(t_list *begin_list);
-void				ft_whiteskip(const char *str, int *i);
+void				ft_whiteskip(char **str);
 int					ft_num_of_words(char **arr);
 size_t				ft_strlen_until_char(const char *str, char c);
+char				*ft_itoa_base(unsigned int value, int base, int whatcase);
+char				*ft_white_swap(char *str);
+char				*ft_itoa_l_u(unsigned long int n);
+char				*ft_itoa_l_l_u(unsigned long long n);
+char				*ft_itoa_base_l(long value, int base, int whatcase);
+char				*ft_itoa_base_l_u(unsigned long value, int base,\
+	int whatcase);
+char				*ft_itoa_base_l_l(long long value, int base, int whatcase);
+char				*ft_itoa_base_u_l_l(unsigned long long value,\
+	int base, int whatcase);
+char				*ft_itoa_base_ssize(ssize_t value, int base, int whatcase);
+char				*ft_itoa_long_ssize(ssize_t n);
+char				*ft_itoa_short(short int n);
+char				*ft_itoa_short_u(unsigned short int n);
+char				*ft_itoa_base_u_short(unsigned short int value,\
+	int base, int whatcase);
+void				ft_putstr_null(char const *s);
+wchar_t				*ft_wstrjoin(wchar_t *s1, wchar_t *s2);
+wchar_t				*ft_wstrnew(size_t size);
+wchar_t				*ft_wstrncpy(wchar_t *dst, wchar_t *src, size_t len);
+wchar_t				*ft_white_swap_wstr(wchar_t *str, int wstrlen);
+int					ft_wstrlen(wchar_t *wstr);
+char				*ft_itoa_base_size(size_t value, int base, int whatcase);
+int					ft_wcharlen(wchar_t wstr);
+int					way_definder(char *format_line, va_list *ap, t_typer *type,\
+	t_perech *data);
+char				*flag_width_pres_maintain(char *format_line, char *str,\
+	t_typer type);
+char				*ft_modify(char *format, va_list *ap, t_perech *data,\
+	t_typer type);
+int					num_maintain(char *format_line, va_list *ap, t_typer *type,\
+	t_perech *data);
+char				*precision_num(char *format_line, char *str,\
+	t_typer type, int *nil);
+int					mod_norm_help(char *format, char **str, t_typer type,\
+	intmax_t num);
+char				*width_num(char *format_line, char *str,\
+	char c, t_typer type);
+char				*ft_white_swap_num(char *str, int space);
+int					char_maintain_percent(char *format_line);
+int					error_maintain(char *format_line);
+char				*width_char(char *format_line, char *str, char c);
+char				*flag_width_pres_maintain_char(char *format_line,\
+	char *str);
+int					write_wchar(wchar_t value);
+int					ft_size_bin(long long int nb);
+int					char_maintain(char *format_line, va_list *ap);
+char				*width_ptr(char *format_line, char *str, char c);
+char				*precision_ptr(char *format_line, char *str, int *prec);
+int					ptr_maintain(char *format_line, va_list *ap);
+char				*width_str(char *format_line, char *str, char c);
+char				*precision_str(char *format_line, char *str, int *nil);
+char				*flag_width_pres_maintain_str(char *format_line, char *str);
+int					write_wstr(wchar_t *wstr);
+wchar_t				*width_wstr(char *format_line, wchar_t *str, wchar_t c);
+wchar_t				*precision_wstr(char *format_line, wchar_t *str,\
+	int wstrlen, int *nil);
+wchar_t				*flag_width_pres_maintain_wstr(char *format_line,\
+	wchar_t *str, int wstrlen);
+int					str_maintain(char *format_line, va_list *ap,\
+	t_typer *type, t_perech *data);
+char				*format_cat(char **format);
 #endif
