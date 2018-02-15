@@ -31,15 +31,16 @@ typedef struct  s_coord
 
 typedef struct s_data
 {
-    char **map;
-    int map_h;
-    int map_w;
+    char **m;
+    int m_h;
+    int m_w;
     t_w_def way;
-    char **shape;
+    char **sh;
     int sh_h;
     int sh_w;
-    char sign;
-    int last_colmn;
-    int last_row;
+    char s;
+    int l_c;
+    int l_r;
+    int num_of_sign;
 }               t_data;
 #endif

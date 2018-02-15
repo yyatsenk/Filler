@@ -19,43 +19,43 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
- 
-void map_free(char **map)
+
+void			map_free(char **m)
 {
-	int i;
+	int			i;
 
 	i = -1;
-	while(map && map[++i])
-		free(map[i]);
-	free(map[i]);
-	free(map);
+	while (m && m[++i])
+		free(m[i]);
+	free(m[i]);
+	free(m);
 }
 
-void shape_free(char **shape)
+void			shape_free(char **sh)
 {
-	int i;
-	
+	int			i;
+
 	i = -1;
-	while(shape && shape[++i])
-		free(shape[i]);
-	free(shape[i]);
-	free(shape);
+	while (sh && sh[++i])
+		free(sh[i]);
+	free(sh[i]);
+	free(sh);
 }
 
-int num_of_stars(t_data *data)
+int				num_of_stars(t_data *d)
 {
-	int stars;
-	int i;
-	int j;
+	int			stars;
+	int			i;
+	int			j;
 
 	stars = 0;
 	i = 0;
-	while(data->shape && data->shape[i])
+	while (d->sh && d->sh[i])
 	{
 		j = 0;
-		while(data->shape[i][j])
+		while (d->sh[i][j])
 		{
-			if (data->shape[i][j] == '*')
+			if (d->sh[i][j] == '*')
 				stars++;
 			j++;
 		}
@@ -64,282 +64,314 @@ int num_of_stars(t_data *data)
 	return (stars);
 }
 
-
-int ft_is_possible(t_data *data, t_coords *sh_coords)
+void			norm0(t_data *d, t_coords *sh_c)
 {
-	int num_of_sign;
-	int i;
-	int null_colmn;
-	int null_row;
-	char enemy;
-	int stars_num;
+	while (d->sh[sh_c->y] && d->sh[sh_c->y][sh_c->x] != '*')
+	{
+		sh_c->x++;
+		if (d->sh[sh_c->y][sh_c->x] == '\0')
+		{
+			sh_c->y++;
+			sh_c->x = 0;
+		}
+	}
+}
+
+int				norm1(t_data *d, t_coords *sh_c, int n_c, int n_r)
+{
+	char		en;
+
+	if (d->s == 'O')
+		en = 'X';
+	else
+		en = 'O';
+	if ((d->l_c + d->sh_w) >= d->m_w
+	|| (d->l_r + d->sh_h) >= d->m_h)
+		return (0);
+	if ((d->l_c + sh_c->x - n_c) >= 0 && (d->l_r + sh_c->y - n_r) >= 0
+		&& (d->l_c + sh_c->x - n_c) <= (d->m_w - 1)
+		&& (d->l_r + sh_c->y - n_r) <= (d->m_h - 1)
+		&& (d->m[d->l_r + sh_c->y - n_r][d->l_c + sh_c->x - n_c] == d->s
+		|| d->m[d->l_r + sh_c->y - n_r][d->l_c + sh_c->x - n_c] == '.'
+		|| d->m[d->l_r + sh_c->y - n_r][d->l_c + sh_c->x - n_c] == d->s + 32)
+		&& d->m[d->l_r + sh_c->y - n_r][d->l_c + sh_c->x - n_c] != en
+		&& d->m[d->l_r + sh_c->y - n_r][d->l_c + sh_c->x - n_c] != en + 32)
+		return (1);
+	else
+		return (0);
+}
+
+void			norm2(t_data *d, t_coords *sh_c, int n_c, int n_r)
+{
+	if ((d->m[d->l_r + sh_c->y - n_r][d->l_c + sh_c->x - n_c] == d->s
+		|| d->m[d->l_r + sh_c->y - n_r][d->l_c + sh_c->x - n_c] == d->s + 32))
+		d->num_of_sign++;
+	if (d->sh[sh_c->y][sh_c->x + 1] == '\0' && !(sh_c->x = 0))
+		sh_c->y++;
+	else
+		sh_c->x++;
+}
+
+int				norm3(t_data *d, int n_c, int n_r)
+{
+	if (d->l_c - n_c < 0 || d->l_r - n_r < 0
+		|| d->num_of_sign != 1)
+		return (0);
+	d->l_c = d->l_c - n_c;
+	d->l_r = d->l_r - n_r;
+	return (1);
+}
+
+int				ft_is_possible(t_data *d, t_coords *sh_c, int n_c, int n_r)
+{
+	int			i;
+	int			stars_num;
 
 	i = -1;
-	num_of_sign = 0;
-	sh_coords->y = 0;
-	sh_coords->x = 0;
-	null_colmn = 0;
-	null_row = 0;
-	stars_num = num_of_stars(data);
-	if (data->sign == 'O')
-		enemy = 'X';
-	else
-		enemy = 'O';
-	if ((data->last_colmn + data->sh_w) >= data->map_w
-	|| (data->last_row + data->sh_h) >= data->map_h)
-		return (0);
+	d->num_of_sign = 0;
+	sh_c->y = 0;
+	sh_c->x = 0;
+	stars_num = num_of_stars(d);
 	while (++i < stars_num)
 	{
-		while(data->shape[sh_coords->y] && data->shape[sh_coords->y][sh_coords->x] != '*')
+		norm0(d, sh_c);
+		if (d->sh[sh_c->y][sh_c->x] == '*' && i == 0)
 		{
-			sh_coords->x++;
-			if (data->shape[sh_coords->y][sh_coords->x] == '\0')
-			{
-					sh_coords->y++;
-					sh_coords->x = 0;
-			}
+			n_c = sh_c->x;
+			n_r = sh_c->y;
 		}
-		if (data->shape[sh_coords->y][sh_coords->x] == '*' && i == 0)
-		{
-			null_colmn = sh_coords->x;
-			null_row = sh_coords->y;
-		}
-		if ((data->last_colmn + sh_coords->x - null_colmn) >= 0 && (data->last_row + sh_coords->y - null_row)>=0 
-		&& (data->last_colmn + sh_coords->x - null_colmn) <= (data->map_w -1) && (data->last_row + sh_coords->y - null_row)<= (data->map_h -1)
-		&&(data->map[data->last_row + sh_coords->y - null_row][data->last_colmn + sh_coords->x - null_colmn] == data->sign 
-		|| data->map[data->last_row + sh_coords->y - null_row][data->last_colmn + sh_coords->x - null_colmn] == '.'
-		|| data->map[data->last_row + sh_coords->y - null_row][data->last_colmn + sh_coords->x - null_colmn] == ft_tolower(data->sign)) 
-		&& data->map[data->last_row + sh_coords->y - null_row][data->last_colmn + sh_coords->x - null_colmn] != enemy 
-		&& data->map[data->last_row + sh_coords->y - null_row][data->last_colmn + sh_coords->x - null_colmn] != ft_tolower(enemy))	
-		{
-			if ((data->map[data->last_row + sh_coords->y - null_row][data->last_colmn + sh_coords->x - null_colmn] == data->sign 
-			|| data->map[data->last_row + sh_coords->y - null_row][data->last_colmn + sh_coords->x - null_colmn] == ft_tolower(data->sign)))
-				num_of_sign++;
-			if (data->shape[sh_coords->y][sh_coords->x + 1] == '\0')
-			{
-					sh_coords->y++;
-					sh_coords->x = 0;
-			}
-			else
-				sh_coords->x++;
-		}
+		if (norm1(d, sh_c, n_c, n_r))
+			norm2(d, sh_c, n_c, n_r);
 		else
 			return (0);
 	}
-	if (num_of_sign != 1)
+	if (norm3(d, n_c, n_r) == 0)
 		return (0);
-	if (data->last_colmn - null_colmn < 0 || data->last_row - null_row < 0)
-		return (0);
-	data->last_colmn = data->last_colmn - null_colmn;
-	data->last_row = data->last_row - null_row;
 	return (1);
 }
 
-int play0(t_data *data, t_coords *sh_coords)
+int				play0(t_data *d, t_coords *sh_coords)
 {
-	int i;
-	
-	i = 0;
-	data->last_colmn = data->map_w - 1;
-	data->last_row = data->map_h - 1;
-	while(i != 1)
-	{
-		if ((i = ft_is_possible(data, sh_coords)))
-			ft_printf("%d %d\n", data->last_row, data->last_colmn);
-		else
-		{
-			if ((data->last_row == 0 && data->last_colmn == 0))
-			{
-				ft_printf ("%d %d\n", 0, 0);
-				return (0);
-			}
-			else if (data->last_colmn == 0 && data->last_row > 0 && (data->last_colmn = data->map_w - 1))			
-				data->last_row--;
-			else if (data->last_colmn != 0)
-				data->last_colmn--;
-		}
-	}
-		return (1);
-}
+	int			i;
 
-int play1(t_data *data, t_coords *sh_coords)
-{
-	int i;
-	
 	i = 0;
-	data->last_colmn = 0;
-	data->last_row = 0;
-	while(i != 1)
+	d->l_c = d->m_w - 1;
+	d->l_r = d->m_h - 1;
+	while (i != 1)
 	{
-		if ((i = ft_is_possible(data, sh_coords)))
-			ft_printf("%d %d\n", data->last_row, data->last_colmn);
+		if ((i = ft_is_possible(d, sh_coords, 0, 0)))
+			ft_printf("%d %d\n", d->l_r, d->l_c);
 		else
 		{
-			if ((data->last_row == (data->map_h - 1) && data->last_colmn == (data->map_w - 1)))
+			if ((d->l_r == 0 && d->l_c == 0))
 			{
-				ft_printf ("%d %d\n", 0, 0);
+				ft_printf("%d %d\n", 0, 0);
 				return (0);
 			}
-			if (data->last_colmn == (data->map_w - 1) 
-				&& data->last_row < (data->map_h - 1) && !(data->last_colmn = 0))
-				data->last_row++;
-			else if (data->last_colmn != (data->map_w - 1))
-				data->last_colmn++;
+			else if (d->l_c == 0 && d->l_r > 0 && (d->l_c = d->m_w - 1))
+				d->l_r--;
+			else if (d->l_c != 0)
+				d->l_c--;
 		}
 	}
 	return (1);
-
 }
 
-void algo_defind(t_data *data, t_coords sign_c)
+int				play1(t_data *d, t_coords *sh_coords)
 {
-	if (sign_c.x < (data->map_w / 2) && sign_c.y < (data->map_h / 2))
-		data->way = right_down;
-	else if (sign_c.x > (data->map_w / 2) && sign_c.y < (data->map_h / 2))
-		data->way = left_down; 
-	else if (sign_c.x < (data->map_w / 2) && sign_c.y > (data->map_h / 2))
-		data->way = right_up;
-	else if (sign_c.x > (data->map_w / 2) && sign_c.y >= (data->map_h / 2))
-		data->way = left_up;
-}
+	int			i;
 
-void find_my_coords(t_data *data)
-{
-	t_coords map;
-	t_coords sign_c;
-
-	map.y = 0;
-	while(map.y < data->map_h)
+	i = 0;
+	d->l_c = 0;
+	d->l_r = 0;
+	while (i != 1)
 	{
-		map.x = 0;
-		while (map.x < data->map_w)
+		if ((i = ft_is_possible(d, sh_coords, 0, 0)))
+			ft_printf("%d %d\n", d->l_r, d->l_c);
+		else
 		{
-			if (data->map[map.y][map.x] == data->sign)
+			if ((d->l_r == (d->m_h - 1) && d->l_c == (d->m_w - 1)))
 			{
-					sign_c.x = map.x;
-					sign_c.y = map.y;
+				ft_printf("%d %d\n", 0, 0);
+				return (0);
 			}
-			map.x++;
+			if (d->l_c == (d->m_w - 1)
+				&& d->l_r < (d->m_h - 1) && !(d->l_c = 0))
+				d->l_r++;
+			else if (d->l_c != (d->m_w - 1))
+				d->l_c++;
 		}
-		map.y++;
 	}
-	algo_defind(data, sign_c);
+	return (1);
 }
-void shape_change(t_data *data, int fd)
+
+void			algo_defind(t_data *d, t_coords sign_c)
 {
-	int i;
-	char *str;
+	if (sign_c.x < (d->m_w / 2) && sign_c.y < (d->m_h / 2))
+		d->way = right_down;
+	else if (sign_c.x > (d->m_w / 2) && sign_c.y < (d->m_h / 2))
+		d->way = left_down;
+	else if (sign_c.x < (d->m_w / 2) && sign_c.y > (d->m_h / 2))
+		d->way = right_up;
+	else if (sign_c.x > (d->m_w / 2) && sign_c.y >= (d->m_h / 2))
+		d->way = left_up;
+	else
+		d->way = right_down;
+}
+
+void			find_my_coords(t_data *d)
+{
+	t_coords	m;
+	t_coords	sign_c;
+
+	m.y = 0;
+	while (m.y < d->m_h)
+	{
+		m.x = 0;
+		while (m.x < d->m_w)
+		{
+			if (d->m[m.y][m.x] == d->s)
+			{
+				sign_c.x = m.x;
+				sign_c.y = m.y;
+			}
+			m.x++;
+		}
+		m.y++;
+	}
+	algo_defind(d, sign_c);
+}
+
+void			shape_change(t_data *d, int fd)
+{
+	int			i;
+	char		*str;
 
 	i = 5;
+	str = NULL;
 	get_next_line(fd, &str);
-	data->sh_h = ft_atoi(&str[i]);
+	d->sh_h = ft_atoi(&str[i]);
 	while (ft_isdigit(str[++i]))
 		;
-	data->sh_w = ft_atoi(&str[i]);
+	d->sh_w = ft_atoi(&str[i]);
 	free(str);
 	i = -1;
-	data->shape = (char**)malloc(sizeof(char*) * (data->sh_h + 1));
-	if (data->shape == NULL)
+	d->sh = (char**)malloc(sizeof(char*) * (d->sh_h + 1));
+	if (d->sh == NULL)
 	{
 		ft_printf("0 0\n");
 		exit(1);
 	}
-	while (++i < data->sh_h)
+	while (++i < d->sh_h)
 	{
 		get_next_line(fd, &str);
-		data->shape[i] = ft_strdup(str);
+		d->sh[i] = ft_strdup(str);
 		free(str);
 	}
-	data->shape[i] = NULL;
+	d->sh[i] = NULL;
 }
 
-void player_num(int fd, t_data *data)
+void			player_num(int fd, t_data *d)
 {
-	char *str;
+	char		*str;
+
 	str = NULL;
 	get_next_line(fd, &str);
 	if (str && str[10] == '1')
-		data->sign = 'O';
+		d->s = 'O';
 	else if (str && str[10] == '2')
-		data->sign = 'X';
+		d->s = 'X';
 	free(str);
 }
 
-void map_change(t_data *data, int fd)
+void			map_change_help(t_data *d)
 {
-	char *str;
-	int i;
+	char		*str;
+	int			i;
+	int			fd;
 
 	str = NULL;
-	i = 7;
-	get_next_line(fd, &str);
-	data->map_h = ft_atoi(&str[i]);
-	while (ft_isdigit(str[++i]))
-		;
-	data->map_w = ft_atoi(&str[i]);
-	free(str);
 	i = -1;
-	data->map = (char**)malloc(sizeof(char*) * (data->map_h + 1));
-	if (data->map == NULL)
-	{
-		ft_printf("0 0\n");
-		exit(1);
-	}
+	fd = 0;
 	get_next_line(fd, &str);
 	free(str);
-	while (++i < data->map_h)
+	while (++i < d->m_h)
 	{
 		get_next_line(fd, &str);
-		data->map[i] = ft_strsub(str, 4, data->map_w);
-		if (data->map[i] == NULL)
+		d->m[i] = ft_strsub(str, 4, d->m_w);
+		if (d->m[i] == NULL)
 		{
 			ft_printf("0 0\n");
 			exit(1);
 		}
 		free(str);
 	}
-	data->map[i] = NULL;
+	d->m[i] = NULL;
 }
-void init(t_data *data, int fd)
-{
-	map_change(data, fd);
-	shape_change(data, fd);
-}
-void algo0(t_data *data, t_coords *sh_coords, int fd)
-{
-	while(play0(data, sh_coords))
-	{
-		map_free(data->map);
-		shape_free(data->shape);
-		init(data, fd);
-	}
-}
-void algo1(t_data *data, t_coords *sh_coords, int fd)
-{	
-	while(play1(data, sh_coords))
-	{
-		map_free(data->map);
-		shape_free(data->shape);
-		init(data, fd);
-	}
-}
-int main(void)
-{
-	t_data *data;
-	t_coords *sh_coords;
 
-	data = (t_data*)malloc(sizeof(t_data));
+void			map_change(t_data *d, int fd)
+{
+	char		*str;
+	int			i;
+
+	str = NULL;
+	i = 7;
+	get_next_line(fd, &str);
+	d->m_h = ft_atoi(&str[i]);
+	while (ft_isdigit(str[++i]))
+		;
+	d->m_w = ft_atoi(&str[i]);
+	free(str);
+	i = -1;
+	d->m = (char**)malloc(sizeof(char*) * (d->m_h + 1));
+	if (d->m == NULL)
+	{
+		ft_printf("0 0\n");
+		exit(1);
+	}
+	map_change_help(d);
+}
+
+void			algo0(t_data *d, t_coords *sh_coords, int fd)
+{
+	while (play0(d, sh_coords))
+	{
+		map_free(d->m);
+		shape_free(d->sh);
+		map_change(d, fd);
+		shape_change(d, fd);
+	}
+}
+
+void			algo1(t_data *d, t_coords *sh_coords, int fd)
+{
+	while (play1(d, sh_coords))
+	{
+		map_free(d->m);
+		shape_free(d->sh);
+		map_change(d, fd);
+		shape_change(d, fd);
+	}
+}
+
+int				main(void)
+{
+	t_data		*d;
+	t_coords	*sh_coords;
+
+	d = (t_data*)malloc(sizeof(t_data));
 	sh_coords = (t_coords*)malloc(sizeof(t_coords));
-	player_num(0, data);
-	init(data, 0);
-	find_my_coords(data);
-	if (data->way == 1 || data->way == 0)
-		algo0(data, sh_coords,0);
+	player_num(0, d);
+	map_change(d, 0);
+	shape_change(d, 0);
+	find_my_coords(d);
+	if (d->way == 1 || d->way == 0)
+		algo0(d, sh_coords, 0);
 	else
-		algo1(data, sh_coords, 0);
-	map_free(data->map);
-	shape_free(data->shape);
-	free(data);
+		algo1(d, sh_coords, 0);
+	map_free(d->m);
+	shape_free(d->sh);
+	free(d);
 	free(sh_coords);
 	return (0);
 }
